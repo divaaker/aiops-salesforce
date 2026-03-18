@@ -1,0 +1,381 @@
+{
+  "timestamp": "2026-03-18T10:47:08.549960",
+  "limits": {
+    "ActiveOrgSnapshots": {
+      "Max": 5,
+      "Remaining": 5,
+      "UsedPct": 0.0
+    },
+    "ActiveScratchOrgs": {
+      "Max": 3,
+      "Remaining": 3,
+      "UsedPct": 0.0
+    },
+    "AnalyticsExternalDataSizeMB": {
+      "Max": 40960,
+      "Remaining": 40960,
+      "UsedPct": 0.0
+    },
+    "CdpAiInferenceApiMonthlyLimit": {
+      "Max": 500000000,
+      "Remaining": 500000000,
+      "UsedPct": 0.0
+    },
+    "ConcurrentAsyncGetReportInstances": {
+      "Max": 200,
+      "Remaining": 200,
+      "UsedPct": 0.0
+    },
+    "ConcurrentEinsteinDataInsightsStoryCreation": {
+      "Max": 5,
+      "Remaining": 5,
+      "UsedPct": 0.0
+    },
+    "ConcurrentEinsteinDiscoveryStoryCreation": {
+      "Max": 2,
+      "Remaining": 2,
+      "UsedPct": 0.0
+    },
+    "ConcurrentSyncReportRuns": {
+      "Max": 20,
+      "Remaining": 20,
+      "UsedPct": 0.0
+    },
+    "ContentDistBandwidthLimitMB": {
+      "Max": 51200,
+      "Remaining": 51200,
+      "UsedPct": 0.0
+    },
+    "ContentDistViewLimit": {
+      "Max": 50000,
+      "Remaining": 50000,
+      "UsedPct": 0.0
+    },
+    "ContentPublicationLimit": {
+      "Max": 2500,
+      "Remaining": 2500,
+      "UsedPct": 0.0
+    },
+    "DailyAnalyticsDataflowJobExecutions": {
+      "Max": 60,
+      "Remaining": 60,
+      "UsedPct": 0.0
+    },
+    "DailyAnalyticsUploadedFilesSizeMB": {
+      "Max": 102400,
+      "Remaining": 102400,
+      "UsedPct": 0.0
+    },
+    "DailyApexCursorLimit": {
+      "Max": 10000,
+      "Remaining": 10000,
+      "UsedPct": 0.0
+    },
+    "DailyApexCursorRowsLimit": {
+      "Max": 100000000,
+      "Remaining": 100000000,
+      "UsedPct": 0.0
+    },
+    "DailyApexPCursorLimit": {
+      "Max": 200000,
+      "Remaining": 200000,
+      "UsedPct": 0.0
+    },
+    "DailyApiRequests": {
+      "Max": 15000,
+      "Remaining": 14599,
+      "UsedPct": 2.67
+    },
+    "DailyAsyncApexExecutions": {
+      "Max": 250000,
+      "Remaining": 250000,
+      "UsedPct": 0.0
+    },
+    "DailyAsyncApexTests": {
+      "Max": 500,
+      "Remaining": 500,
+      "UsedPct": 0.0
+    },
+    "DailyBulkApiBatches": {
+      "Max": 15000,
+      "Remaining": 15000,
+      "UsedPct": 0.0
+    },
+    "DailyBulkV2QueryFileStorageMB": {
+      "Max": 976562,
+      "Remaining": 976562,
+      "UsedPct": 0.0
+    },
+    "DailyBulkV2QueryJobs": {
+      "Max": 10000,
+      "Remaining": 10000,
+      "UsedPct": 0.0
+    },
+    "DailyDeliveredPlatformEvents": {
+      "Max": 10000,
+      "Remaining": 10000,
+      "UsedPct": 0.0
+    },
+    "DailyDurableGenericStreamingApiEvents": {
+      "Max": 10000,
+      "Remaining": 10000,
+      "UsedPct": 0.0
+    },
+    "DailyDurableStreamingApiEvents": {
+      "Max": 10000,
+      "Remaining": 10000,
+      "UsedPct": 0.0
+    },
+    "DailyEinsteinDataInsightsStoryCreation": {
+      "Max": 1000,
+      "Remaining": 1000,
+      "UsedPct": 0.0
+    },
+    "DailyEinsteinDiscoveryOptimizationJobRuns": {
+      "Max": 25,
+      "Remaining": 25,
+      "UsedPct": 0.0
+    },
+    "DailyEinsteinDiscoveryPredictAPICalls": {
+      "Max": 50000,
+      "Remaining": 50000,
+      "UsedPct": 0.0
+    },
+    "DailyEinsteinDiscoveryPredictionsByCDC": {
+      "Max": 500000,
+      "Remaining": 500000,
+      "UsedPct": 0.0
+    },
+    "DailyEinsteinDiscoveryStoryCreation": {
+      "Max": 100,
+      "Remaining": 100,
+      "UsedPct": 0.0
+    },
+    "DailyFunctionsApiCallLimit": {
+      "Max": 50000,
+      "Remaining": 50000,
+      "UsedPct": 0.0
+    },
+    "DailyGenericStreamingApiEvents": {
+      "Max": 10000,
+      "Remaining": 10000,
+      "UsedPct": 0.0
+    },
+    "DailyMetadataRetrievesWithDependencies": {
+      "Max": 25,
+      "Remaining": 25,
+      "UsedPct": 0.0
+    },
+    "DailyOrgSnapshots": {
+      "Max": 5,
+      "Remaining": 5,
+      "UsedPct": 0.0
+    },
+    "DailyScratchOrgs": {
+      "Max": 6,
+      "Remaining": 6,
+      "UsedPct": 0.0
+    },
+    "DailyServiceEmailAgentforceCalls": {
+      "Max": 5000,
+      "Remaining": 5000,
+      "UsedPct": 0.0
+    },
+    "DailyStandardVolumePlatformEvents": {
+      "Max": 10000,
+      "Remaining": 10000,
+      "UsedPct": 0.0
+    },
+    "DailyStreamingApiEvents": {
+      "Max": 10000,
+      "Remaining": 10000,
+      "UsedPct": 0.0
+    },
+    "DailyWorkflowEmails": {
+      "Max": 405,
+      "Remaining": 405,
+      "UsedPct": 0.0
+    },
+    "DataStorageMB": {
+      "Max": 5,
+      "Remaining": 0,
+      "UsedPct": 100.0
+    },
+    "DurableStreamingApiConcurrentClients": {
+      "Max": 20,
+      "Remaining": 20,
+      "UsedPct": 0.0
+    },
+    "ExternalServicesActiveObjects": {
+      "Max": 3000,
+      "Remaining": 3000,
+      "UsedPct": 0.0
+    },
+    "ExternalServicesActiveOperations": {
+      "Max": 3000,
+      "Remaining": 3000,
+      "UsedPct": 0.0
+    },
+    "ExternalServicesObjectProperties": {
+      "Max": 400000,
+      "Remaining": 400000,
+      "UsedPct": 0.0
+    },
+    "ExternalServicesObjects": {
+      "Max": 10000,
+      "Remaining": 10000,
+      "UsedPct": 0.0
+    },
+    "ExternalServicesOperations": {
+      "Max": 10000,
+      "Remaining": 10000,
+      "UsedPct": 0.0
+    },
+    "ExternalServicesRegistrations": {
+      "Max": 700,
+      "Remaining": 700,
+      "UsedPct": 0.0
+    },
+    "FileStorageMB": {
+      "Max": 20,
+      "Remaining": 20,
+      "UsedPct": 0.0
+    },
+    "HourlyAsyncReportRuns": {
+      "Max": 1200,
+      "Remaining": 1200,
+      "UsedPct": 0.0
+    },
+    "HourlyDashboardRefreshes": {
+      "Max": 200,
+      "Remaining": 200,
+      "UsedPct": 0.0
+    },
+    "HourlyDashboardResults": {
+      "Max": 5000,
+      "Remaining": 5000,
+      "UsedPct": 0.0
+    },
+    "HourlyDashboardStatuses": {
+      "Max": 999999999,
+      "Remaining": 999999999,
+      "UsedPct": 0.0
+    },
+    "HourlyElevateAsyncReportRuns": {
+      "Max": 1200,
+      "Remaining": 1200,
+      "UsedPct": 0.0
+    },
+    "HourlyElevateSyncReportRuns": {
+      "Max": 500,
+      "Remaining": 500,
+      "UsedPct": 0.0
+    },
+    "HourlyLongTermIdMapping": {
+      "Max": 100000,
+      "Remaining": 99998,
+      "UsedPct": 0.0
+    },
+    "HourlyManagedContentPublicRequests": {
+      "Max": 50000,
+      "Remaining": 50000,
+      "UsedPct": 0.0
+    },
+    "HourlyODataCallout": {
+      "Max": 1000,
+      "Remaining": 1000,
+      "UsedPct": 0.0
+    },
+    "HourlyPublishedPlatformEvents": {
+      "Max": 50000,
+      "Remaining": 50000,
+      "UsedPct": 0.0
+    },
+    "HourlyPublishedStandardVolumePlatformEvents": {
+      "Max": 1000,
+      "Remaining": 1000,
+      "UsedPct": 0.0
+    },
+    "HourlyShortTermIdMapping": {
+      "Max": 100000,
+      "Remaining": 100000,
+      "UsedPct": 0.0
+    },
+    "HourlySyncReportRuns": {
+      "Max": 500,
+      "Remaining": 500,
+      "UsedPct": 0.0
+    },
+    "HourlyTimeBasedWorkflow": {
+      "Max": 1000,
+      "Remaining": 1000,
+      "UsedPct": 0.0
+    },
+    "MassEmail": {
+      "Max": 10,
+      "Remaining": 10,
+      "UsedPct": 0.0
+    },
+    "MaxContentDocumentsLimit": {
+      "Max": 30000000,
+      "Remaining": 29999994,
+      "UsedPct": 0.0
+    },
+    "MonthlyEinsteinDiscoveryStoryCreation": {
+      "Max": 500,
+      "Remaining": 500,
+      "UsedPct": 0.0
+    },
+    "Package2VersionCreates": {
+      "Max": 6,
+      "Remaining": 6,
+      "UsedPct": 0.0
+    },
+    "Package2VersionCreatesWithoutValidation": {
+      "Max": 500,
+      "Remaining": 500,
+      "UsedPct": 0.0
+    },
+    "PermissionSets": {
+      "Max": 1500,
+      "Remaining": 1494,
+      "UsedPct": 0.4
+    },
+    "PlatformEventTriggersWithParallelProcessing": {
+      "Max": 5,
+      "Remaining": 5,
+      "UsedPct": 0.0
+    },
+    "PrivateConnectOutboundCalloutHourlyLimitMB": {
+      "Max": 0,
+      "Remaining": 0,
+      "UsedPct": 0
+    },
+    "PublishCallbackUsageInApex": {
+      "Max": 5242880,
+      "Remaining": 5242880,
+      "UsedPct": 0.0
+    },
+    "ScheduledFlowRunLimit": {
+      "Max": 250000,
+      "Remaining": 250000,
+      "UsedPct": 0.0
+    },
+    "ScheduledPathRunLimit": {
+      "Max": 250000,
+      "Remaining": 250000,
+      "UsedPct": 0.0
+    },
+    "SingleEmail": {
+      "Max": 15,
+      "Remaining": 15,
+      "UsedPct": 0.0
+    },
+    "StreamingApiConcurrentClients": {
+      "Max": 20,
+      "Remaining": 20,
+      "UsedPct": 0.0
+    }
+  },
+  "event_logs": {}
+}
