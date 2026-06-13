@@ -53,6 +53,18 @@ python3 scripts/chat_ollama.py            # or: python3 scripts/chat_ollama.py l
 ```
 The adapter is unit-tested without a daemon (mocked HTTP) in `tests/test_llm_ollama.py`.
 
+## Transcribe a WAV end-to-end (real STT, CPU-ok)
+faster-whisper runs on CPU, so you can go audio → text → reply with no GPU:
+```bash
+pip install faster-whisper           # first run downloads the model
+python3 scripts/transcribe_wav.py path/to/speech.wav          # mono 16-bit WAV
+python3 scripts/transcribe_wav.py path/to/speech.wav small    # bigger model
+OLLAMA=1 python3 scripts/transcribe_wav.py speech.wav         # real STT + real LLM
+```
+Convert any audio first: `ffmpeg -i in.mp3 -ac 1 -ar 16000 -sample_fmt s16 out.wav`.
+The adapter is unit-tested without the library (injected fake model) in
+`tests/test_stt_whisper.py`.
+
 ## Going real (the GPU box)
 Flip the config and install extras:
 ```python
