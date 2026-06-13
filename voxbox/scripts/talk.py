@@ -30,6 +30,10 @@ def main() -> None:
     cfg = config_from_env()
     barge_in = os.environ.get("VOX_BARGE_IN", "1") != "0"
     streaming = os.environ.get("VOX_STREAM", "1") != "0"
+    # Barge-in sensitivity (tune to your mic; see scripts/calibrate.py)
+    barge_threshold = float(os.environ.get("VOX_BARGE_THRESHOLD", "-30"))
+    onset_frames = int(os.environ.get("VOX_ONSET_FRAMES", "6"))
+    playback_margin = float(os.environ.get("VOX_PLAYBACK_MARGIN", "8"))
     try:
         orch = build_pipeline(cfg)
         from voxbox.audio.live import MicSource, QueueingSpeaker, StreamingSpeaker
@@ -40,10 +44,11 @@ def main() -> None:
         print("❌ Live audio needs sounddevice. Install with: pip install 'voxbox[client]'")
         sys.exit(1)
 
+    vad_thr = cfg.options.get("vad", {}).get("threshold_dbfs", -40.0)
     mode = "streaming" if streaming else "whole-reply"
     print(f"🎙️  VoxBox live (stt={cfg.stt} llm={cfg.llm} tts={cfg.tts}, "
           f"barge-in={'on' if barge_in else 'off'}, {mode}). "
-          f"Speak, then pause. Ctrl-C to quit.\n")
+          f"vad_threshold={vad_thr}dBFS. Speak, then pause. Ctrl-C to quit.\n")
 
     interrupt = lambda: print("  ✋ (interrupted — listening)\n")  # noqa: E731
 
@@ -54,6 +59,8 @@ def main() -> None:
 
             engine = ConversationEngine(
                 orch, QueueingSpeaker(), barge_in=barge_in,
+                threshold_dbfs=barge_threshold, onset_frames=onset_frames,
+                playback_margin_dbfs=playback_margin,
                 on_chunk=lambda c: print(f"  🔊 {c.text}"),
                 on_turn=lambda d: print(f"     ⏱ first_audio={d.metrics.first_audio_ms:.0f}ms "
                                         f"total={d.metrics.total_ms:.0f}ms\n"),

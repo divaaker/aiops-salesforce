@@ -22,6 +22,18 @@ def config_from_env(env: Optional[dict] = None) -> Config:
     e = env if env is not None else os.environ
     options: dict = {}
 
+    vad = e.get("VOX_VAD", "energy")
+    if vad == "energy":
+        o = {}
+        if e.get("VOX_VAD_THRESHOLD"):
+            o["threshold_dbfs"] = float(e["VOX_VAD_THRESHOLD"])
+        if e.get("VOX_VAD_MIN_SPEECH_MS"):
+            o["min_speech_ms"] = float(e["VOX_VAD_MIN_SPEECH_MS"])
+        if e.get("VOX_VAD_HANGOVER_MS"):
+            o["hangover_ms"] = float(e["VOX_VAD_HANGOVER_MS"])
+        if o:
+            options["vad"] = o
+
     stt = e.get("VOX_STT", "mock")
     if stt == "faster_whisper":
         o = {"device": e.get("VOX_WHISPER_DEVICE", "auto"),
@@ -47,7 +59,7 @@ def config_from_env(env: Optional[dict] = None) -> Config:
         options["tts"] = o
 
     return Config(
-        vad=e.get("VOX_VAD", "energy"),
+        vad=vad,
         stt=stt,
         llm=llm,
         tts=tts,

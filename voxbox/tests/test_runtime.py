@@ -19,6 +19,16 @@ def test_config_from_env_defaults_to_mock():
     assert cfg.options == {}
 
 
+def test_config_from_env_vad_threshold_tuning():
+    cfg = config_from_env(env={"VOX_VAD_THRESHOLD": "-28", "VOX_VAD_HANGOVER_MS": "500"})
+    assert cfg.options["vad"]["threshold_dbfs"] == -28.0
+    assert cfg.options["vad"]["hangover_ms"] == 500.0
+    # and it actually reaches the EnergyVAD
+    from voxbox.pipeline import build_pipeline
+    orch = build_pipeline(cfg)
+    assert orch.vad.threshold_dbfs == -28.0
+
+
 def test_config_from_env_wires_real_backends_and_options():
     cfg = config_from_env(env={
         "VOX_STT": "faster_whisper", "VOX_WHISPER_MODEL": "small",
