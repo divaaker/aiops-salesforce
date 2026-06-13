@@ -65,6 +65,18 @@ Convert any audio first: `ffmpeg -i in.mp3 -ac 1 -ar 16000 -sample_fmt s16 out.w
 The adapter is unit-tested without the library (injected fake model) in
 `tests/test_stt_whisper.py`.
 
+## Synthesize speech locally (real TTS, CPU-ok)
+Piper is fast on CPU, so you can get real spoken audio out:
+```bash
+pip install piper-tts
+# download a voice (.onnx + .onnx.json) from https://huggingface.co/rhasspy/piper-voices
+python3 scripts/speak.py en_US-amy-medium.onnx "Hello from a fully local agent." out.wav
+```
+Adapter handles all of Piper's API shapes and is tested with injected fake voices
+in `tests/test_tts_piper.py`. With Ollama + faster-whisper + Piper installed you can
+run the **entire STT→LLM→TTS chain on a laptop, fully local**:
+`Config(vad="energy", stt="faster_whisper", llm="ollama", tts="piper", options=...)`.
+
 ## Going real (the GPU box)
 Flip the config and install extras:
 ```python
