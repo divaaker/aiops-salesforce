@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import List, Optional, Protocol, runtime_checkable
+from typing import Iterator, List, Optional, Protocol, runtime_checkable
 
 # ── Data carried between stages ──────────────────────────────────────────────
 
@@ -122,6 +122,14 @@ class LLM(Protocol):
     """Conversational language model."""
 
     def respond(self, text: str, history: List[dict]) -> LLMResponse: ...
+
+
+@runtime_checkable
+class StreamingLLM(Protocol):
+    """An LLM that can emit its reply incrementally (token/word deltas), enabling
+    the agent to start speaking before the full reply is generated."""
+
+    def respond_stream(self, text: str, history: List[dict]) -> Iterator[str]: ...
 
 
 @runtime_checkable

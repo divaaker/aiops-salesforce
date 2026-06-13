@@ -7,7 +7,7 @@ the integration tests assert exact conversation transcripts.
 """
 from __future__ import annotations
 
-from typing import List
+from typing import Iterator, List
 
 from ..contracts import LLMResponse
 
@@ -31,3 +31,10 @@ class RuleBasedLLM:
             return LLMResponse("That's a good question. Locally, I'd reason about it step by step.")
         turn = sum(1 for m in history if m.get("role") == "user") + 1
         return LLMResponse(f"You said: '{text.strip()}'. (turn {turn})")
+
+    def respond_stream(self, text: str, history: List[dict]) -> Iterator[str]:
+        """Yield the reply word-by-word to emulate token streaming (deterministic)."""
+        full = self.respond(text, history).text
+        words = full.split(" ")
+        for i, w in enumerate(words):
+            yield w if i == len(words) - 1 else w + " "

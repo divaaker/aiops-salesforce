@@ -12,7 +12,7 @@ Local quickstart:
 from __future__ import annotations
 
 import json
-from typing import List
+from typing import Iterator, List
 from urllib import error, request
 
 from ..contracts import LLMResponse
@@ -67,3 +67,36 @@ class OllamaLLM:
             return LLMResponse(text=data["message"]["content"].strip())
         except (KeyError, TypeError) as exc:
             raise OllamaError(f"Unexpected Ollama response: {data!r}") from exc
+
+    def _messages(self, text: str, history: List[dict]) -> List[dict]:
+        messages = [{"role": "system", "content": self.system}]
+        messages.extend(history)
+        messages.append({"role": "user", "content": text})
+        return messages
+
+    def respond_stream(self, text: str, history: List[dict]) -> Iterator[str]:
+        """Stream token deltas from Ollama (stream=True yields one JSON per line)."""
+        payload = json.dumps(
+            {"model": self.model, "messages": self._messages(text, history), "stream": True}
+        ).encode()
+        req = request.Request(
+            f"{self.host}/api/chat",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        try:
+            with request.urlopen(req, timeout=self.timeout) as resp:
+                for line in resp:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    data = json.loads(line)
+                    delta = data.get("message", {}).get("content", "")
+                    if delta:
+                        yield delta
+                    if data.get("done"):
+                        break
+        except error.URLError as exc:
+            raise OllamaError(
+                f"Could not reach Ollama at {self.host}. Is it running? ({exc})"
+            ) from exc

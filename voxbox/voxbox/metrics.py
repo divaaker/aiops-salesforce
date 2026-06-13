@@ -23,6 +23,9 @@ class TurnMetrics:
     llm_ms: float = 0.0
     tts_ms: float = 0.0
     total_ms: float = 0.0
+    # Time from end-of-user-speech to the FIRST playable audio. In streaming mode
+    # this is the latency the user actually feels (≪ total_ms). 0 = non-streaming.
+    first_audio_ms: float = 0.0
     budget_ms: float = 0.0
     over_budget: bool = False
     transcript: str = ""
@@ -87,6 +90,8 @@ class MetricsCollector:
             "over_budget": self.over_budget_count(),
             "total_p50_ms": round(self.p50("total_ms"), 1),
             "total_p95_ms": round(self.p95("total_ms"), 1),
+            "first_audio_p50_ms": round(self.p50("first_audio_ms"), 1),
+            "first_audio_p95_ms": round(self.p95("first_audio_ms"), 1),
             "stt_p50_ms": round(self.p50("stt_ms"), 1),
             "llm_p50_ms": round(self.p50("llm_ms"), 1),
             "tts_p50_ms": round(self.p50("tts_ms"), 1),

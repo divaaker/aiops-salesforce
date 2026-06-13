@@ -77,6 +77,20 @@ in `tests/test_tts_piper.py`. With Ollama + faster-whisper + Piper installed you
 run the **entire STT→LLM→TTS chain on a laptop, fully local**:
 `Config(vad="energy", stt="faster_whisper", llm="ollama", tts="piper", options=...)`.
 
+## Streaming responses (lowest felt latency)
+The agent can start speaking after the first sentence instead of waiting for the
+whole reply — token-stream the LLM, synthesize per sentence:
+```bash
+python3 scripts/stream_demo.py     # shows sentence-by-sentence audio + first_audio_ms
+```
+```python
+for ev in orch.stream_segment(segment):
+    if isinstance(ev, StreamChunk): speaker.play(ev.reply)   # play as it arrives
+    else: print("felt latency:", ev.metrics.first_audio_ms, "ms")
+```
+Works with the mock LLM and the real Ollama adapter (`respond_stream`). Tested in
+`tests/test_streaming.py`.
+
 ## Talk to it live (real mic + speaker)
 Co-located (one machine, mic → agent → speaker):
 ```bash
