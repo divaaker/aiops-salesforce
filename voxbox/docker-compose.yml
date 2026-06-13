@@ -1,0 +1,43 @@
+# Local, private VoxBox stack: the inference server + a local Ollama daemon.
+# Nothing leaves your machine. Bring it up with:  docker compose up --build
+# Then connect a Mac client:  python3 scripts/talk_remote.py ws://localhost:8765/stream
+services:
+  voxbox:
+    build:
+      context: .
+      args:
+        EXTRAS: "server,whisper,piper"
+    ports:
+      - "8765:8765"
+    environment:
+      # Flip these to go fully real; defaults keep the mock pipeline.
+      VOX_STT: "${VOX_STT:-mock}"
+      VOX_LLM: "${VOX_LLM:-mock}"
+      VOX_TTS: "${VOX_TTS:-mock}"
+      VOX_OLLAMA_HOST: "http://ollama:11434"
+      VOX_OLLAMA_MODEL: "${VOX_OLLAMA_MODEL:-gemma3}"
+      VOX_PIPER_VOICE: "${VOX_PIPER_VOICE:-}"
+    depends_on:
+      ollama:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8765/healthz').status==200 else 1)"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    # For NVIDIA GPUs, uncomment to expose them to Ollama:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: ["gpu"]
+
+volumes:
+  ollama-models:

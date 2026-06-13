@@ -31,16 +31,21 @@
 - ✅ Streaming wired into the live loop: `QueueingSpeaker` plays sentences
   back-to-back and flushes on barge-in; `run_conversation_streaming` drives it
   (talk.py, `VOX_STREAM=1`). Tested in `test_queueing_speaker.py` + `test_streaming_loop.py`.
-- ⏭️ Move token generation off-thread so barge-in can cut in *during* generation
-  (today it's checked between turns); partial/streaming STT.
+- ✅ Off-thread generation: `ConversationEngine` runs reply generation on a worker
+  thread, so barge-in cuts in *mid-response* (cancels generation + flushes audio).
+  Echo-margin onset detector raises the threshold while speaking (lightweight AEC
+  mitigation). Tested in `tests/test_engine.py`.
+- ⏭️ Partial/streaming STT (needs real Whisper streaming) and full acoustic echo
+  cancellation remain — both are genuinely hardware/DSP-bound, not stubbed.
 - ⏭️ Acoustic echo cancellation (so the mic ignores the agent's own audio without
   headphones), endpointing tuning, configurable system prompt/persona.
 - **Owner:** Dev 1+Dev 2 · **Designer:** interaction spec · **QA:** barge-in latency test.
 
-## v0.5 — Easy deployment (image pillar)
-- One-command install per node; Docker/compose for the GPU service.
-- Model download/cache management; healthchecks; sample LAN setup guide.
-- **Owner:** Dev 2 · **QA:** clean-machine bring-up test.
+## v0.5 — Easy deployment (image pillar) ✅ (delivered)
+- `Dockerfile` (EXTRAS build-arg), `docker-compose.yml` (server + local Ollama,
+  healthcheck on /healthz), `Makefile` task runner.
+- ⏭️ Remaining: model download/cache automation, multi-client soak test.
+- **Owner:** Dev 2.
 
 ## Cross-cutting / always-on
 - Privacy guarantee kept verifiable (no default-path internet calls).

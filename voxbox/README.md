@@ -119,11 +119,21 @@ LAN wire protocol are unit-tested without hardware in `tests/test_runtime.py` an
 with `VOX_BARGE_IN=0`. Tested in `tests/test_barge_in.py`. (Assumes headphones or
 echo cancellation so the mic doesn't hear the agent — real AEC is on the roadmap.)
 
-**Streaming live** (default, `VOX_STREAM=1`): replies stream sentence-by-sentence
-through a `QueueingSpeaker` (plays clips back-to-back, flushes instantly on
-barge-in), driven by `run_conversation_streaming`. Set `VOX_STREAM=0` for
-whole-reply playback. Tested in `tests/test_queueing_speaker.py` and
+**Streaming live** (default, `VOX_STREAM=1`): the `ConversationEngine` generates
+replies on a worker thread and streams them sentence-by-sentence through a
+`QueueingSpeaker`, so you get **mid-response barge-in** — talk over the agent and it
+cancels generation *and* cuts the audio. An echo-margin onset detector keeps the
+agent's own audio from self-triggering. Set `VOX_STREAM=0` for whole-reply playback.
+Tested in `tests/test_engine.py`, `tests/test_queueing_speaker.py`,
 `tests/test_streaming_loop.py`.
+
+## Deploy (the "easy deployment" pillar)
+```bash
+docker compose up --build      # inference server + a local Ollama daemon, all on-box
+# health: curl localhost:8765/healthz   |   metrics: curl localhost:8765/metrics
+make help                      # task runner: test / demo / serve / talk / up / down
+```
+Flip backends with env vars, e.g. `VOX_LLM=ollama VOX_OLLAMA_MODEL=gemma3 docker compose up`.
 
 ## Going real (the GPU box)
 Flip the config and install extras:

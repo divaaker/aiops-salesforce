@@ -23,9 +23,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from voxbox.pipeline import build_pipeline  # noqa: E402
-from voxbox.runtime import (  # noqa: E402
-    config_from_env, run_conversation, run_conversation_streaming,
-)
+from voxbox.runtime import config_from_env, run_conversation  # noqa: E402
 
 
 def main() -> None:
@@ -51,13 +49,17 @@ def main() -> None:
 
     try:
         if streaming:
-            run_conversation_streaming(
-                orch, MicSource(), QueueingSpeaker(), barge_in=barge_in,
+            # ConversationEngine generates off-thread -> true mid-response barge-in.
+            from voxbox.engine import ConversationEngine
+
+            engine = ConversationEngine(
+                orch, QueueingSpeaker(), barge_in=barge_in,
                 on_chunk=lambda c: print(f"  🔊 {c.text}"),
                 on_turn=lambda d: print(f"     ⏱ first_audio={d.metrics.first_audio_ms:.0f}ms "
                                         f"total={d.metrics.total_ms:.0f}ms\n"),
                 on_interrupt=interrupt,
             )
+            engine.run(MicSource())
         else:
             def on_turn(turn):
                 m = turn.metrics
