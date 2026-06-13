@@ -20,6 +20,7 @@ whisper = ["faster-whisper", "numpy"]
 piper = ["piper-tts"]
 server = ["fastapi", "uvicorn", "websockets"]
 client = ["sounddevice", "numpy", "websockets"]
+mcp = ["mcp"]
 dev = ["pytest"]
 
 [tool.pytest.ini_options]

@@ -182,3 +182,18 @@ def test_mcp_provider_maps_tools_and_results():
 def test_mcp_provider_requires_session():
     with pytest.raises(RuntimeError):
         MCPToolProvider(session=None)
+
+
+def test_parse_oauth_callback():
+    from voxbox.tools.mcp import parse_oauth_callback
+
+    code, state = parse_oauth_callback(
+        "http://localhost:8765/callback?code=abc123&state=xyz")
+    assert code == "abc123"
+    assert state == "xyz"
+
+    code, state = parse_oauth_callback("http://localhost:1/callback?code=only")
+    assert code == "only" and state is None
+
+    with pytest.raises(ValueError):
+        parse_oauth_callback("http://localhost:1/callback?state=nocode")

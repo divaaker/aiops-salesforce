@@ -29,8 +29,27 @@ Headless check (no mic): `python scripts/tools_demo.py`.
 
 ## 2. Point it at YOUR MCP server
 Your laptop reaches the tunnel directly (the Claude-sandbox egress limit doesn't
-apply locally). You connect with the MCP SDK (it handles OAuth), then hand the
-session to `MCPToolProvider`:
+apply locally). One command does connect + OAuth + tools + voice loop:
+
+```bash
+pip install mcp
+ollama pull llama3.1
+VOX_STT=faster_whisper VOX_LLM=ollama VOX_TTS=piper \
+VOX_PIPER_VOICE=en_US-amy-medium.onnx VOX_VAD_THRESHOLD=-33 \
+MCP_URL=https://safari-managing-wireless-boot.trycloudflare.com/mcp \
+python scripts/talk_mcp.py
+```
+What happens: it connects to your server, prints `MCP tools: [...]`, then runs the
+live mic loop. For an OAuth server it prints an authorization URL (and opens your
+browser); after you approve, copy the `http://localhost:.../callback?code=...` URL
+from the address bar (the page won't load — expected) and paste it back.
+
+`scripts/talk_mcp.py` bridges the async `mcp` SDK to VoxBox's sync loop (a
+background event loop + `run_coroutine_threadsafe`) and wraps the LLM with
+`ToolCallingLLM`. The `mcp` SDK API shifts between versions, so this is best-effort
+— if connect/auth fails, paste the error and we'll adjust.
+
+### Manual wiring (if you prefer your own script)
 
 ```bash
 pip install mcp

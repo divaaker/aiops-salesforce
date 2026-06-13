@@ -10,9 +10,23 @@ provider session-agnostic makes it testable with a fake session (no SDK needed).
 """
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional, Tuple
 
 from .base import ToolSpec
+
+
+def parse_oauth_callback(url: str) -> Tuple[str, Optional[str]]:
+    """Extract (code, state) from an OAuth redirect URL like
+    http://localhost:<port>/callback?code=...&state=... — used by the paste-the-URL
+    auth flow in scripts/talk_mcp.py."""
+    from urllib.parse import parse_qs, urlparse
+
+    q = parse_qs(urlparse(url).query)
+    code = (q.get("code") or [None])[0]
+    state = (q.get("state") or [None])[0]
+    if not code:
+        raise ValueError("No ?code=... found in the callback URL.")
+    return code, state
 
 
 class MCPToolProvider:
