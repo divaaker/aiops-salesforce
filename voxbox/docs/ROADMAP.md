@@ -7,6 +7,11 @@
 - Audio file/list IO, LAN WebSocket server skeleton.
 - 29 tests (contract, integration, latency), demo script, docs + ADRs.
 
+## Neural VAD ✅ (delivered)
+- `SileroVAD` (lazy torch) with 512-sample windowing + hangover/min-speech
+  segmentation; `VOX_VAD=silero` drops the need to calibrate an energy threshold.
+  Segmentation tested via an injected probability fn (no torch needed in CI).
+
 ## v0.2 — Real models on the GPU box (hardware-gated)
 - Implement the four real adapters end-to-end.
 - A hardware-gated test tier: accuracy (WER on a small set) + real latency benchmark.

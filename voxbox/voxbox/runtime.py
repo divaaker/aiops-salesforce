@@ -22,14 +22,16 @@ def config_from_env(env: Optional[dict] = None) -> Config:
     e = env if env is not None else os.environ
     options: dict = {}
     vad = e.get("VOX_VAD", "energy")
-    if vad == "energy":
+    if vad in ("energy", "silero"):
         o = {}
-        if e.get("VOX_VAD_THRESHOLD"):
-            o["threshold_dbfs"] = float(e["VOX_VAD_THRESHOLD"])
         if e.get("VOX_VAD_MIN_SPEECH_MS"):
             o["min_speech_ms"] = float(e["VOX_VAD_MIN_SPEECH_MS"])
         if e.get("VOX_VAD_HANGOVER_MS"):
             o["hangover_ms"] = float(e["VOX_VAD_HANGOVER_MS"])
+        if vad == "energy" and e.get("VOX_VAD_THRESHOLD"):
+            o["threshold_dbfs"] = float(e["VOX_VAD_THRESHOLD"])
+        if vad == "silero" and e.get("VOX_SILERO_THRESHOLD"):
+            o["threshold"] = float(e["VOX_SILERO_THRESHOLD"])
         if o:
             options["vad"] = o
 

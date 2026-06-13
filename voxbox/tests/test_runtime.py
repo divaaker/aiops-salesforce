@@ -45,6 +45,15 @@ def test_live_defaults_reach_the_vad():
     assert orch.vad.min_speech_ms == 200.0
 
 
+def test_config_from_env_silero_options():
+    cfg = config_from_env(env={"VOX_VAD": "silero", "VOX_SILERO_THRESHOLD": "0.6",
+                               "VOX_VAD_HANGOVER_MS": "500"})
+    assert cfg.vad == "silero"
+    assert cfg.options["vad"]["threshold"] == 0.6
+    assert cfg.options["vad"]["hangover_ms"] == 500.0
+    assert "threshold_dbfs" not in cfg.options["vad"]
+
+
 def test_config_from_env_vad_threshold_tuning():
     cfg = config_from_env(env={"VOX_VAD_THRESHOLD": "-28", "VOX_VAD_HANGOVER_MS": "500"})
     assert cfg.options["vad"]["threshold_dbfs"] == -28.0

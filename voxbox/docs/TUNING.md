@@ -27,6 +27,19 @@ you set explicitly wins.
 | `VOX_ONSET_FRAMES` | `6` | Consecutive loud 20 ms frames (~120 ms) needed to interrupt. Higher = less twitchy. |
 | `VOX_PLAYBACK_MARGIN` | `8` | Extra dB added to the barge-in threshold **while the agent is speaking** (so its own voice doesn't self-trigger). |
 
+## Neural VAD (Silero) — no threshold to tune
+`VOX_VAD=silero` swaps the energy detector for the Silero neural model, which tells
+speech from noise so you can skip `VOX_VAD_THRESHOLD`/calibration entirely. CPU-ok.
+```bash
+pip install "voxbox[silero]"
+VOX_VAD=silero VOX_STT=faster_whisper VOX_LLM=ollama VOX_TTS=piper \
+VOX_OLLAMA_MODEL=gemma3 VOX_PIPER_VOICE=en_US-amy-medium.onnx python scripts/talk.py
+```
+| Var | Default | What it does |
+|-----|---------|--------------|
+| `VOX_SILERO_THRESHOLD` | `0.5` | Speech probability (0–1) to count as speech. Raise to be stricter. |
+| `VOX_VAD_HANGOVER_MS` / `VOX_VAD_MIN_SPEECH_MS` | shared with energy | endpointing, same as above |
+
 ## STT model (faster-whisper)
 | Var | Live default | Notes |
 |-----|--------------|-------|
