@@ -43,6 +43,16 @@ for chunk in mic_chunks:                 # 16-bit/16k mono AudioChunks
         play(turn.reply.pcm)             # 16-bit/24k mono
 ```
 
+## Test a real LLM locally (no GPU, no mic)
+Ollama runs on CPU too, so you can drive a genuine LLM turn through the real loop:
+```bash
+# 1. install Ollama (https://ollama.com), then:
+ollama pull gemma3
+# 2. chat through the actual VoxBox turn loop (STT/TTS mocked, LLM is real):
+python3 scripts/chat_ollama.py            # or: python3 scripts/chat_ollama.py llama3.2
+```
+The adapter is unit-tested without a daemon (mocked HTTP) in `tests/test_llm_ollama.py`.
+
 ## Going real (the GPU box)
 Flip the config and install extras:
 ```python
