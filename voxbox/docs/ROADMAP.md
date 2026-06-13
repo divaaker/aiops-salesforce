@@ -13,10 +13,13 @@
 - `/metrics` dashboard endpoint with live p50/p95.
 - **Owner:** Dev 1 · **QA:** WER + latency thresholds in CI-on-GPU runner.
 
-## v0.3 — Real-time client (the Mac)
-- Live mic capture + low-latency playback (sounddevice), threaded/async loop.
-- WebSocket streaming client ↔ server; reconnect/backpressure handling.
-- **Owner:** Dev 2 · **QA:** soak test (long sessions, no drift/leak).
+## v0.3 — Real-time client (the Mac) ✅ (delivered)
+- Live mic capture + playback via sounddevice (`voxbox/audio/live.py`, raw int16).
+- Co-located runner `scripts/talk.py` + env-driven backend selection (`runtime.py`).
+- WebSocket split: `scripts/serve.py` (GPU box) + `scripts/talk_remote.py` (Mac),
+  shared wire protocol (`transport/protocol.py`, `transport/client.py`).
+- Loop + protocol unit-tested without hardware (test_runtime, test_transport).
+- ⏭️ Remaining: reconnect/backpressure handling, soak test (long sessions).
 
 ## v0.4 — Conversational quality
 - **Streaming everything:** partial STT, token-streamed LLM → streaming TTS to slash

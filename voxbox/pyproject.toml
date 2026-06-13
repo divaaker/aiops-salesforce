@@ -19,7 +19,7 @@ silero = ["torch", "silero-vad"]
 whisper = ["faster-whisper", "numpy"]
 piper = ["piper-tts"]
 server = ["fastapi", "uvicorn", "websockets"]
-client = ["sounddevice", "numpy"]
+client = ["sounddevice", "numpy", "websockets"]
 dev = ["pytest"]
 
 [tool.pytest.ini_options]

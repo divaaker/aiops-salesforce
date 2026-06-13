@@ -77,6 +77,29 @@ in `tests/test_tts_piper.py`. With Ollama + faster-whisper + Piper installed you
 run the **entire STT→LLM→TTS chain on a laptop, fully local**:
 `Config(vad="energy", stt="faster_whisper", llm="ollama", tts="piper", options=...)`.
 
+## Talk to it live (real mic + speaker)
+Co-located (one machine, mic → agent → speaker):
+```bash
+pip install "voxbox[client]"
+python3 scripts/talk.py                 # all-mock smoke test (proves the loop)
+# fully-local real agent:
+VOX_STT=faster_whisper VOX_LLM=ollama VOX_TTS=piper \
+VOX_OLLAMA_MODEL=gemma3 VOX_PIPER_VOICE=en_US-amy-medium.onnx \
+python3 scripts/talk.py
+```
+Split topology (thin Mac ↔ GPU box, exactly as in the diagram):
+```bash
+# on the GPU box:
+pip install "voxbox[server]"
+VOX_STT=faster_whisper VOX_LLM=ollama VOX_TTS=piper VOX_PIPER_VOICE=amy.onnx python3 scripts/serve.py
+# on the Mac:
+pip install "voxbox[client]"
+python3 scripts/talk_remote.py ws://<gpu-ip>:8765/stream
+```
+Backends are selected via `VOX_*` env vars (`config_from_env`). The loop and the
+LAN wire protocol are unit-tested without hardware in `tests/test_runtime.py` and
+`tests/test_transport.py`.
+
 ## Going real (the GPU box)
 Flip the config and install extras:
 ```python

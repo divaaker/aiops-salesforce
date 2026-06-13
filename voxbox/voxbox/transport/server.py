@@ -37,6 +37,7 @@ def create_app(cfg: Config | None = None):  # pragma: no cover - needs server ex
     @app.websocket("/stream")
     async def stream(ws: WebSocket):
         from ..contracts import AudioChunk
+        from .protocol import turn_to_meta
 
         await ws.accept()
         try:
@@ -44,13 +45,7 @@ def create_app(cfg: Config | None = None):  # pragma: no cover - needs server ex
                 pcm = await ws.receive_bytes()
                 result = orch.feed(AudioChunk(pcm=pcm, sample_rate=16000))
                 if result is not None:
-                    await ws.send_json(
-                        {
-                            "transcript": result.transcript.text,
-                            "response": result.response_text,
-                            "metrics": result.metrics.as_dict(),
-                        }
-                    )
+                    await ws.send_json(turn_to_meta(result))
                     await ws.send_bytes(result.reply.pcm)
         except Exception:
             await ws.close()
