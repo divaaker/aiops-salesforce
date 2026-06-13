@@ -127,6 +127,10 @@ agent's own audio from self-triggering. Set `VOX_STREAM=0` for whole-reply playb
 Tested in `tests/test_engine.py`, `tests/test_queueing_speaker.py`,
 `tests/test_streaming_loop.py`.
 
+The live scripts apply forgiving defaults (longer endpoint pause, `base.en` Whisper);
+every knob and recipe is in [`docs/TUNING.md`](docs/TUNING.md). Calibrate your mic
+with `python scripts/calibrate.py`.
+
 ## Deploy (the "easy deployment" pillar)
 ```bash
 docker compose up --build      # inference server + a local Ollama daemon, all on-box

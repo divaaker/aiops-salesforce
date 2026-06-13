@@ -1,7 +1,7 @@
 """Tests for env-driven config and the live capture->orchestrate->play loop,
 using a fake speaker (no audio hardware)."""
 from voxbox.pipeline import build_pipeline
-from voxbox.runtime import config_from_env, run_local
+from voxbox.runtime import config_from_env, live_env_defaults, run_local
 from tests.helpers import utterance_chunks
 
 
@@ -17,6 +17,32 @@ def test_config_from_env_defaults_to_mock():
     cfg = config_from_env(env={})
     assert (cfg.vad, cfg.stt, cfg.llm, cfg.tts) == ("energy", "mock", "mock", "mock")
     assert cfg.options == {}
+
+
+def test_live_env_defaults_fill_endpointing():
+    e = live_env_defaults(env={})
+    assert e["VOX_VAD_HANGOVER_MS"] == "600"
+    assert e["VOX_VAD_MIN_SPEECH_MS"] == "200"
+    assert "VOX_WHISPER_MODEL" not in e  # only when whisper is selected
+
+
+def test_live_env_defaults_add_whisper_model_when_selected():
+    e = live_env_defaults(env={"VOX_STT": "faster_whisper"})
+    assert e["VOX_WHISPER_MODEL"] == "base.en"
+
+
+def test_live_env_defaults_do_not_override_user_values():
+    e = live_env_defaults(env={"VOX_VAD_HANGOVER_MS": "300", "VOX_STT": "faster_whisper",
+                               "VOX_WHISPER_MODEL": "small"})
+    assert e["VOX_VAD_HANGOVER_MS"] == "300"
+    assert e["VOX_WHISPER_MODEL"] == "small"
+
+
+def test_live_defaults_reach_the_vad():
+    cfg = config_from_env(live_env_defaults(env={}))
+    orch = build_pipeline(cfg)
+    assert orch.vad.hangover_ms == 600.0
+    assert orch.vad.min_speech_ms == 200.0
 
 
 def test_config_from_env_vad_threshold_tuning():

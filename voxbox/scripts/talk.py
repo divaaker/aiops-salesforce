@@ -23,11 +23,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from voxbox.pipeline import build_pipeline  # noqa: E402
-from voxbox.runtime import config_from_env, run_conversation  # noqa: E402
+from voxbox.runtime import config_from_env, live_env_defaults, run_conversation  # noqa: E402
 
 
 def main() -> None:
-    cfg = config_from_env()
+    cfg = config_from_env(live_env_defaults())
     barge_in = os.environ.get("VOX_BARGE_IN", "1") != "0"
     streaming = os.environ.get("VOX_STREAM", "1") != "0"
     # Barge-in sensitivity (tune to your mic; see scripts/calibrate.py)
@@ -45,10 +45,14 @@ def main() -> None:
         sys.exit(1)
 
     vad_thr = cfg.options.get("vad", {}).get("threshold_dbfs", -40.0)
+    hangover = cfg.options.get("vad", {}).get("hangover_ms", 300.0)
+    whisper = cfg.options.get("stt", {}).get("model_size", "base")
     mode = "streaming" if streaming else "whole-reply"
-    print(f"🎙️  VoxBox live (stt={cfg.stt} llm={cfg.llm} tts={cfg.tts}, "
-          f"barge-in={'on' if barge_in else 'off'}, {mode}). "
-          f"vad_threshold={vad_thr}dBFS. Speak, then pause. Ctrl-C to quit.\n")
+    stt_label = f"{cfg.stt}:{whisper}" if cfg.stt == "faster_whisper" else cfg.stt
+    print(f"🎙️  VoxBox live (stt={stt_label} llm={cfg.llm} tts={cfg.tts}, "
+          f"barge-in={'on' if barge_in else 'off'}, {mode}).\n"
+          f"    vad_threshold={vad_thr}dBFS  endpoint_pause={hangover}ms. "
+          f"Speak, then pause. Ctrl-C to quit.\n")
 
     interrupt = lambda: print("  ✋ (interrupted — listening)\n")  # noqa: E731
 

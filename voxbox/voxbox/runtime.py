@@ -21,7 +21,6 @@ from .vad.base import rms_dbfs
 def config_from_env(env: Optional[dict] = None) -> Config:
     e = env if env is not None else os.environ
     options: dict = {}
-
     vad = e.get("VOX_VAD", "energy")
     if vad == "energy":
         o = {}
@@ -66,6 +65,28 @@ def config_from_env(env: Optional[dict] = None) -> Config:
         budget_ms=float(e.get("VOX_BUDGET_MS", "1200")),
         options=options,
     )
+
+
+# Forgiving defaults for the live (mic) experience. These are applied only by the
+# live scripts via live_env_defaults(); config_from_env() itself stays minimal so
+# the test pipeline keeps using the library defaults.
+LIVE_DEFAULTS = {
+    "VOX_VAD_HANGOVER_MS": "600",   # silence to end a turn (won't cut off short pauses)
+    "VOX_VAD_MIN_SPEECH_MS": "200",  # ignore brief blips/noises
+}
+
+
+def live_env_defaults(env: Optional[dict] = None) -> dict:
+    """Return a copy of env with live-tuned defaults filled in (without overriding
+    anything the user explicitly set)."""
+    e = dict(env if env is not None else os.environ)
+    for k, v in LIVE_DEFAULTS.items():
+        e.setdefault(k, v)
+    if e.get("VOX_STT") == "faster_whisper":
+        # base.en: same speed as base, better English accuracy. Override with
+        # VOX_WHISPER_MODEL=base (multilingual) or small/medium for more accuracy.
+        e.setdefault("VOX_WHISPER_MODEL", "base.en")
+    return e
 
 
 def run_local(
