@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "my-server": {
+      "type": "http",
+      "url": "https://safari-managing-wireless-boot.trycloudflare.com/mcp"
+    }
+  }
+}
