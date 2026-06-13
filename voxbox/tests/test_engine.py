@@ -148,3 +148,21 @@ def test_real_thread_generation_runs_to_completion():
     eng.run(utterance_chunks("hello"))  # run() joins the worker before returning
     assert [r.num_samples > 0 for r in sp.played] == [True, True]
     assert dones == ["Alpha. Beta."]
+
+
+def test_backend_error_is_reported_not_crashed():
+    class _BrokenLLM:
+        def respond_stream(self, text, history):
+            raise RuntimeError("ollama down")
+            yield  # make it a generator
+
+        def respond(self, text, history):
+            raise RuntimeError("ollama down")
+
+    orch = build_pipeline(Config())
+    orch.llm = _BrokenLLM()
+    errors = []
+    eng = ConversationEngine(orch, _RecordingSpeaker(), barge_in=True,
+                             on_error=lambda e: errors.append(str(e)))
+    eng.run(utterance_chunks("hello"))  # must not raise
+    assert any("ollama down" in e for e in errors)

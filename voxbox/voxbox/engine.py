@@ -78,6 +78,7 @@ class ConversationEngine:
         on_chunk: Optional[Callable[[StreamChunk], None]] = None,
         on_turn: Optional[Callable[[StreamDone], None]] = None,
         on_interrupt: Optional[Callable[[], None]] = None,
+        on_error: Optional[Callable[[Exception], None]] = None,
         handle_factory: Optional[Callable] = None,
     ) -> None:
         self.orch = orch
@@ -86,6 +87,7 @@ class ConversationEngine:
         self.on_chunk = on_chunk
         self.on_turn = on_turn
         self.on_interrupt = on_interrupt
+        self.on_error = on_error
         self._detector = OnsetDetector(threshold_dbfs, onset_frames, playback_margin_dbfs)
         self._handle_factory = handle_factory or self._spawn_generation
         self._gen = None
@@ -136,15 +138,21 @@ class ConversationEngine:
         cancel = threading.Event()
 
         def _work():
-            for ev in self.orch.stream_segment(segment):
-                if cancel.is_set():
-                    break
-                if isinstance(ev, StreamChunk):
-                    self.speaker.play(ev.reply)
-                    if self.on_chunk is not None:
-                        self.on_chunk(ev)
-                elif self.on_turn is not None:
-                    self.on_turn(ev)
+            try:
+                for ev in self.orch.stream_segment(segment):
+                    if cancel.is_set():
+                        break
+                    if isinstance(ev, StreamChunk):
+                        self.speaker.play(ev.reply)
+                        if self.on_chunk is not None:
+                            self.on_chunk(ev)
+                    elif self.on_turn is not None:
+                        self.on_turn(ev)
+            except Exception as exc:  # a backend (LLM/STT/TTS) failed mid-turn
+                if self.on_error is not None:
+                    self.on_error(exc)
+                else:
+                    raise
 
         t = threading.Thread(target=_work, daemon=True)
         t.start()
