@@ -62,7 +62,8 @@ def main() -> None:
                 threshold_dbfs=barge_threshold, onset_frames=onset_frames,
                 playback_margin_dbfs=playback_margin,
                 on_chunk=lambda c: print(f"  🔊 {c.text}"),
-                on_turn=lambda d: print(f"     ⏱ first_audio={d.metrics.first_audio_ms:.0f}ms "
+                on_turn=lambda d: print(f"  🗣️ heard: {d.transcript.text!r}    "
+                                        f"⏱ first_audio={d.metrics.first_audio_ms:.0f}ms "
                                         f"total={d.metrics.total_ms:.0f}ms\n"),
                 on_interrupt=interrupt,
                 on_error=lambda e: print(f"  ⚠ backend error: {e}\n"),
