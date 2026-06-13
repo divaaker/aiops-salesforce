@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voxbox"
+version = "0.1.0"
+description = "A fully-local, private, real-time voice agent (VAD -> STT -> LLM -> TTS)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+# Core has ZERO required deps — the mock pipeline + tests run on stdlib alone.
+dependencies = []
+
+[project.optional-dependencies]
+# Real backends for the GPU box / Mac client. Installed only where needed.
+silero = ["torch", "silero-vad"]
+whisper = ["faster-whisper", "numpy"]
+piper = ["piper-tts"]
+server = ["fastapi", "uvicorn", "websockets"]
+client = ["sounddevice", "numpy"]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.setuptools.packages.find]
+include = ["voxbox*"]
