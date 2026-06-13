@@ -44,6 +44,31 @@ def main() -> None:
         print("❌ Live audio needs sounddevice. Install with: pip install 'voxbox[client]'")
         sys.exit(1)
 
+    # Optional tool-calling: wrap the LLM so it can call tools (mock or MCP).
+    tools_mode = os.environ.get("VOX_TOOLS", "none")
+    if tools_mode != "none":
+        if cfg.llm != "ollama":
+            print("❌ VOX_TOOLS needs VOX_LLM=ollama (a tool-capable model).")
+            sys.exit(1)
+        from voxbox.llm.ollama import OllamaToolModel
+        from voxbox.tools import MockToolProvider, ToolCallingLLM
+
+        model = OllamaToolModel(
+            model=os.environ.get("VOX_TOOLS_MODEL", "llama3.1"),
+            host=os.environ.get("VOX_OLLAMA_HOST", "http://localhost:11434"),
+        )
+        if tools_mode == "mock":
+            provider = MockToolProvider()
+        elif tools_mode == "mcp":
+            print("❌ VOX_TOOLS=mcp needs a connected MCP session (OAuth). "
+                  "See docs/MCP.md; use VOX_TOOLS=mock to test the flow now.")
+            sys.exit(1)
+        else:
+            print(f"❌ unknown VOX_TOOLS={tools_mode!r} (use 'mock' or 'mcp').")
+            sys.exit(1)
+        orch.llm = ToolCallingLLM(model, provider)
+        print(f"🔧 tools enabled ({tools_mode}): {[t.name for t in provider.list_tools()]}")
+
     vad_thr = cfg.options.get("vad", {}).get("threshold_dbfs", -40.0)
     hangover = cfg.options.get("vad", {}).get("hangover_ms", 300.0)
     whisper = cfg.options.get("stt", {}).get("model_size", "base")

@@ -100,3 +100,57 @@ class OllamaLLM:
             raise OllamaError(
                 f"Could not reach Ollama at {self.host}. Is it running? ({exc})"
             ) from exc
+
+
+class OllamaToolModel:
+    """A tool-capable model (the `ToolModel` contract) backed by Ollama's /api/chat
+    `tools` parameter. Use a model that supports tool calling (e.g. llama3.1,
+    qwen2.5, mistral-nemo) — many small models, including some gemma builds, don't.
+    """
+
+    def __init__(self, model: str = "llama3.1", host: str = "http://localhost:11434",
+                 system: str = "You are a helpful local voice assistant. Use tools when relevant.",
+                 timeout: float = 60.0) -> None:
+        self.model = model
+        self.host = host.rstrip("/")
+        self.system = system
+        self.timeout = timeout
+
+    def chat(self, messages, tools):
+        from ..tools.base import ToolCall  # local import avoids import cycle
+
+        payload = json.dumps({
+            "model": self.model,
+            "messages": [{"role": "system", "content": self.system}] + list(messages),
+            "tools": [
+                {"type": "function", "function": {
+                    "name": t.name, "description": t.description, "parameters": t.input_schema}}
+                for t in tools
+            ],
+            "stream": False,
+        }).encode()
+        req = request.Request(
+            f"{self.host}/api/chat", data=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        try:
+            with request.urlopen(req, timeout=self.timeout) as resp:
+                data = json.loads(resp.read().decode())
+        except error.URLError as exc:
+            raise OllamaError(
+                f"Could not reach Ollama at {self.host}. Is it running? ({exc})"
+            ) from exc
+
+        msg = data.get("message", {}) or {}
+        text = (msg.get("content") or "").strip()
+        calls = []
+        for tc in msg.get("tool_calls", []) or []:
+            fn = tc.get("function", {}) or {}
+            args = fn.get("arguments", {}) or {}
+            if isinstance(args, str):
+                try:
+                    args = json.loads(args)
+                except json.JSONDecodeError:
+                    args = {}
+            calls.append(ToolCall(name=fn.get("name", ""), arguments=args))
+        return text, calls
