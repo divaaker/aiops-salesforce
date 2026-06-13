@@ -23,15 +23,18 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from voxbox.pipeline import build_pipeline  # noqa: E402
-from voxbox.runtime import config_from_env, run_conversation  # noqa: E402
+from voxbox.runtime import (  # noqa: E402
+    config_from_env, run_conversation, run_conversation_streaming,
+)
 
 
 def main() -> None:
     cfg = config_from_env()
     barge_in = os.environ.get("VOX_BARGE_IN", "1") != "0"
+    streaming = os.environ.get("VOX_STREAM", "1") != "0"
     try:
         orch = build_pipeline(cfg)
-        from voxbox.audio.live import MicSource, StreamingSpeaker
+        from voxbox.audio.live import MicSource, QueueingSpeaker, StreamingSpeaker
     except RuntimeError as exc:
         print(f"❌ {exc}")
         sys.exit(1)
@@ -39,22 +42,31 @@ def main() -> None:
         print("❌ Live audio needs sounddevice. Install with: pip install 'voxbox[client]'")
         sys.exit(1)
 
+    mode = "streaming" if streaming else "whole-reply"
     print(f"🎙️  VoxBox live (stt={cfg.stt} llm={cfg.llm} tts={cfg.tts}, "
-          f"barge-in={'on' if barge_in else 'off'}). Speak, then pause. Ctrl-C to quit.\n")
+          f"barge-in={'on' if barge_in else 'off'}, {mode}). "
+          f"Speak, then pause. Ctrl-C to quit.\n")
 
-    def on_turn(turn):
-        m = turn.metrics
-        print(f"  🗣️  {turn.transcript.text!r}")
-        print(f"  🤖 {turn.response_text}")
-        print(f"     ⏱ stt={m.stt_ms:.0f} llm={m.llm_ms:.0f} tts={m.tts_ms:.0f} "
-              f"total={m.total_ms:.0f}ms" + ("  ⚠ OVER BUDGET" if m.over_budget else "") + "\n")
+    interrupt = lambda: print("  ✋ (interrupted — listening)\n")  # noqa: E731
 
     try:
-        run_conversation(
-            orch, MicSource(), StreamingSpeaker(),
-            barge_in=barge_in, on_turn=on_turn,
-            on_interrupt=lambda: print("  ✋ (interrupted — listening)\n"),
-        )
+        if streaming:
+            run_conversation_streaming(
+                orch, MicSource(), QueueingSpeaker(), barge_in=barge_in,
+                on_chunk=lambda c: print(f"  🔊 {c.text}"),
+                on_turn=lambda d: print(f"     ⏱ first_audio={d.metrics.first_audio_ms:.0f}ms "
+                                        f"total={d.metrics.total_ms:.0f}ms\n"),
+                on_interrupt=interrupt,
+            )
+        else:
+            def on_turn(turn):
+                m = turn.metrics
+                print(f"  🗣️  {turn.transcript.text!r}\n  🤖 {turn.response_text}")
+                print(f"     ⏱ total={m.total_ms:.0f}ms"
+                      + ("  ⚠ OVER BUDGET" if m.over_budget else "") + "\n")
+
+            run_conversation(orch, MicSource(), StreamingSpeaker(),
+                             barge_in=barge_in, on_turn=on_turn, on_interrupt=interrupt)
     except KeyboardInterrupt:
         print("\n👋 bye —", orch.metrics.summary())
 

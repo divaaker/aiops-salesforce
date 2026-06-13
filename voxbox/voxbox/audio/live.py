@@ -11,7 +11,7 @@ Install with:  pip install "voxbox[client]"
 from __future__ import annotations
 
 import time
-from typing import Iterator, Optional
+from typing import Callable, Iterator, Optional
 
 from ..contracts import AudioChunk, AudioReply
 
@@ -116,3 +116,85 @@ class StreamingSpeaker:
     def wait(self) -> None:  # pragma: no cover - needs hardware
         if self._thread is not None:
             self._thread.join()
+
+
+class QueueingSpeaker:
+    """Plays a queue of AudioReply clips back-to-back on a worker thread — what the
+    streaming agent needs so consecutive sentences flow without gaps — while still
+    being instantly interruptible for barge-in (`stop` flushes the queue).
+
+    The actual audio writing is a pluggable `writer(reply, should_stop)` callable, so
+    the queue/interrupt logic is testable without audio hardware.
+    """
+
+    def __init__(self, writer: Optional[Callable] = None, device: Optional[int] = None,
+                 chunk_frames: int = 1024) -> None:
+        import queue
+        import threading
+
+        self.device = device
+        self.chunk_frames = chunk_frames
+        self._writer = writer or self._sd_writer
+        self._q: "queue.Queue" = queue.Queue()
+        self._interrupt = threading.Event()
+        self._playing = threading.Event()
+        self._queue_mod = queue
+        self._worker = threading.Thread(target=self._run, daemon=True)
+        self._worker.start()
+
+    def _run(self) -> None:
+        while True:
+            reply = self._q.get()
+            if reply is None:
+                self._q.task_done()
+                break
+            self._playing.set()
+            try:
+                if not self._interrupt.is_set():
+                    self._writer(reply, self._interrupt.is_set)
+            finally:
+                self._playing.clear()
+                self._q.task_done()
+
+    def play(self, reply: AudioReply) -> None:
+        """Enqueue a clip (plays after whatever is already queued)."""
+        self._q.put(reply)
+
+    enqueue = play
+
+    def is_active(self) -> bool:
+        return self._playing.is_set() or not self._q.empty()
+
+    def stop(self) -> None:
+        """Barge-in: drop everything queued and cut off the current clip."""
+        self._interrupt.set()
+        while True:
+            try:
+                self._q.get_nowait()
+                self._q.task_done()
+            except self._queue_mod.Empty:
+                break
+        while self._playing.is_set():
+            time.sleep(0.002)
+        self._interrupt.clear()
+
+    def wait(self) -> None:
+        self._q.join()
+        while self._playing.is_set():
+            time.sleep(0.002)
+
+    def close(self) -> None:
+        self._q.put(None)
+        self._worker.join(timeout=1.0)
+
+    def _sd_writer(self, reply: AudioReply, should_stop) -> None:  # pragma: no cover - hardware
+        import sounddevice as sd  # lazy
+
+        step = self.chunk_frames * 2
+        with sd.RawOutputStream(
+            samplerate=reply.sample_rate, dtype="int16", channels=1, device=self.device
+        ) as out:
+            for i in range(0, len(reply.pcm), step):
+                if should_stop():
+                    return
+                out.write(reply.pcm[i : i + step])

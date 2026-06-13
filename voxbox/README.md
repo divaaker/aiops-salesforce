@@ -119,6 +119,12 @@ LAN wire protocol are unit-tested without hardware in `tests/test_runtime.py` an
 with `VOX_BARGE_IN=0`. Tested in `tests/test_barge_in.py`. (Assumes headphones or
 echo cancellation so the mic doesn't hear the agent — real AEC is on the roadmap.)
 
+**Streaming live** (default, `VOX_STREAM=1`): replies stream sentence-by-sentence
+through a `QueueingSpeaker` (plays clips back-to-back, flushes instantly on
+barge-in), driven by `run_conversation_streaming`. Set `VOX_STREAM=0` for
+whole-reply playback. Tested in `tests/test_queueing_speaker.py` and
+`tests/test_streaming_loop.py`.
+
 ## Going real (the GPU box)
 Flip the config and install extras:
 ```python

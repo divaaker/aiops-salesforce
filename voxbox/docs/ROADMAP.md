@@ -28,8 +28,11 @@
 - ✅ **Streaming responses:** token-streamed LLM → per-sentence TTS via
   `orchestrator.stream_segment` + `sentence_chunker`; reports `first_audio_ms`
   (felt latency). Streaming Ollama adapter + mock. Tested in `tests/test_streaming.py`.
-- ⏭️ Wire streaming into the live barge-in loop (needs a queueing StreamingSpeaker so
-  sentences play back-to-back) + partial/streaming STT.
+- ✅ Streaming wired into the live loop: `QueueingSpeaker` plays sentences
+  back-to-back and flushes on barge-in; `run_conversation_streaming` drives it
+  (talk.py, `VOX_STREAM=1`). Tested in `test_queueing_speaker.py` + `test_streaming_loop.py`.
+- ⏭️ Move token generation off-thread so barge-in can cut in *during* generation
+  (today it's checked between turns); partial/streaming STT.
 - ⏭️ Acoustic echo cancellation (so the mic ignores the agent's own audio without
   headphones), endpointing tuning, configurable system prompt/persona.
 - **Owner:** Dev 1+Dev 2 · **Designer:** interaction spec · **QA:** barge-in latency test.

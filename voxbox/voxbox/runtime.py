@@ -14,6 +14,7 @@ from typing import Callable, Iterable, Optional
 from .config import Config
 from .contracts import AudioChunk
 from .orchestrator import Orchestrator, TurnResult
+from .streaming import StreamChunk, StreamDone
 from .vad.base import rms_dbfs
 
 
@@ -134,6 +135,47 @@ def run_conversation(
         if on_turn is not None:
             on_turn(result)
         speaker.play(result.reply)
+        turns += 1
+        if max_turns is not None and turns >= max_turns:
+            break
+    return turns
+
+
+def run_conversation_streaming(
+    orch: Orchestrator,
+    source: Iterable[AudioChunk],
+    speaker,
+    barge_in: bool = True,
+    threshold_dbfs: float = -40.0,
+    onset_frames: int = 3,
+    on_chunk: Optional[Callable[[StreamChunk], None]] = None,
+    on_turn: Optional[Callable[[StreamDone], None]] = None,
+    on_interrupt: Optional[Callable[[], None]] = None,
+    max_turns: Optional[int] = None,
+) -> int:
+    """Live loop with streaming replies: each completed utterance is streamed
+    sentence-by-sentence and enqueued on a QueueingSpeaker, so the agent starts
+    talking sooner. Barge-in still works: the user's next utterance flushes any
+    queued/playing sentences before the new turn is handled.
+
+    Note: this single-threaded loop checks barge-in between turns; interrupting
+    *during* token generation needs the generation moved off-thread (see ROADMAP).
+    """
+    controller = BargeInController(speaker, threshold_dbfs, onset_frames) if barge_in else None
+    turns = 0
+    for chunk in source:
+        if controller is not None and controller.on_chunk(chunk) and on_interrupt is not None:
+            on_interrupt()
+        segment = orch.detect(chunk)
+        if segment is None:
+            continue
+        for ev in orch.stream_segment(segment):
+            if isinstance(ev, StreamChunk):
+                speaker.play(ev.reply)
+                if on_chunk is not None:
+                    on_chunk(ev)
+            elif on_turn is not None:
+                on_turn(ev)
         turns += 1
         if max_turns is not None and turns >= max_turns:
             break
