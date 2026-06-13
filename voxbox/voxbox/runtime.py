@@ -14,6 +14,7 @@ from typing import Callable, Iterable, Optional
 from .config import Config
 from .contracts import AudioChunk
 from .orchestrator import Orchestrator, TurnResult
+from .vad.base import rms_dbfs
 
 
 def config_from_env(env: Optional[dict] = None) -> Config:
@@ -65,6 +66,68 @@ def run_local(
     Returns the number of completed turns. `speaker` only needs `.play(reply)`."""
     turns = 0
     for chunk in source:
+        result = orch.feed(chunk)
+        if result is None:
+            continue
+        if on_turn is not None:
+            on_turn(result)
+        speaker.play(result.reply)
+        turns += 1
+        if max_turns is not None and turns >= max_turns:
+            break
+    return turns
+
+
+class BargeInController:
+    """Watches mic chunks and interrupts an interruptible speaker the moment the
+    user starts talking over the agent.
+
+    It only acts while the speaker is active (`speaker.is_active()`), and requires
+    `onset_frames` consecutive loud chunks to fire — short blips/echo won't trip it.
+    Assumes the mic doesn't pick up the agent's own audio (headphones or echo
+    cancellation); real AEC is out of scope (see ROADMAP).
+    """
+
+    def __init__(self, speaker, threshold_dbfs: float = -40.0, onset_frames: int = 3) -> None:
+        self.speaker = speaker
+        self.threshold_dbfs = threshold_dbfs
+        self.onset_frames = onset_frames
+        self._loud = 0
+
+    def on_chunk(self, chunk: AudioChunk) -> bool:
+        """Returns True if this chunk triggered an interruption."""
+        if not self.speaker.is_active():
+            self._loud = 0
+            return False
+        if rms_dbfs(chunk.pcm) >= self.threshold_dbfs:
+            self._loud += 1
+        else:
+            self._loud = 0
+        if self._loud >= self.onset_frames:
+            self.speaker.stop()
+            self._loud = 0
+            return True
+        return False
+
+
+def run_conversation(
+    orch: Orchestrator,
+    source: Iterable[AudioChunk],
+    speaker,
+    barge_in: bool = True,
+    threshold_dbfs: float = -40.0,
+    onset_frames: int = 3,
+    on_turn: Optional[Callable[[TurnResult], None]] = None,
+    on_interrupt: Optional[Callable[[], None]] = None,
+    max_turns: Optional[int] = None,
+) -> int:
+    """Like run_local, but with barge-in: while the agent is speaking, the user can
+    talk over it to cut it off. Needs an interruptible speaker (play/stop/is_active)."""
+    controller = BargeInController(speaker, threshold_dbfs, onset_frames) if barge_in else None
+    turns = 0
+    for chunk in source:
+        if controller is not None and controller.on_chunk(chunk) and on_interrupt is not None:
+            on_interrupt()
         result = orch.feed(chunk)
         if result is None:
             continue

@@ -100,6 +100,11 @@ Backends are selected via `VOX_*` env vars (`config_from_env`). The loop and the
 LAN wire protocol are unit-tested without hardware in `tests/test_runtime.py` and
 `tests/test_transport.py`.
 
+**Barge-in** is on by default: talk over the agent and it stops to listen
+(`StreamingSpeaker` + `BargeInController`, driven by `run_conversation`). Disable
+with `VOX_BARGE_IN=0`. Tested in `tests/test_barge_in.py`. (Assumes headphones or
+echo cancellation so the mic doesn't hear the agent — real AEC is on the roadmap.)
+
 ## Going real (the GPU box)
 Flip the config and install extras:
 ```python

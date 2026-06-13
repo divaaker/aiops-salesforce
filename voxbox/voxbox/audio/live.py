@@ -46,7 +46,8 @@ class MicSource:
 
 
 class Speaker:
-    """Plays an AudioReply on the default output device at the reply's own rate."""
+    """Plays an AudioReply on the default output device at the reply's own rate.
+    Blocking — fine for the file demo; use StreamingSpeaker for the live agent."""
 
     def __init__(self, device: Optional[int] = None) -> None:
         self.device = device
@@ -58,3 +59,60 @@ class Speaker:
             samplerate=reply.sample_rate, dtype="int16", channels=1, device=self.device
         ) as out:
             out.write(reply.pcm)
+
+
+class StreamingSpeaker:
+    """Non-blocking, interruptible playback for barge-in.
+
+    `play` starts playback on a background thread and returns immediately; `stop`
+    halts it mid-stream; `is_active` reports whether audio is still playing. This is
+    the speaker the live loop watches so the user can talk over the agent.
+    """
+
+    def __init__(self, device: Optional[int] = None, chunk_frames: int = 1024) -> None:
+        import threading
+
+        self.device = device
+        self.chunk_frames = chunk_frames
+        self._stop = threading.Event()
+        self._active = threading.Event()
+        self._thread = None
+        self._threading = threading
+
+    def is_active(self) -> bool:
+        return self._active.is_set()
+
+    def play(self, reply: AudioReply) -> None:  # pragma: no cover - needs hardware
+        self.stop()  # cancel anything currently playing
+        self._stop.clear()
+        self._active.set()
+        self._thread = self._threading.Thread(
+            target=self._run, args=(reply,), daemon=True
+        )
+        self._thread.start()
+
+    def _run(self, reply: AudioReply) -> None:  # pragma: no cover - needs hardware
+        import sounddevice as sd  # lazy
+
+        step = self.chunk_frames * 2  # bytes (int16)
+        try:
+            with sd.RawOutputStream(
+                samplerate=reply.sample_rate, dtype="int16",
+                channels=1, device=self.device,
+            ) as out:
+                for i in range(0, len(reply.pcm), step):
+                    if self._stop.is_set():
+                        break
+                    out.write(reply.pcm[i : i + step])
+        finally:
+            self._active.clear()
+
+    def stop(self) -> None:  # pragma: no cover - needs hardware
+        if self._thread is not None and self._thread.is_alive():
+            self._stop.set()
+            self._thread.join(timeout=1.0)
+        self._active.clear()
+
+    def wait(self) -> None:  # pragma: no cover - needs hardware
+        if self._thread is not None:
+            self._thread.join()

@@ -22,10 +22,13 @@
 - ⏭️ Remaining: reconnect/backpressure handling, soak test (long sessions).
 
 ## v0.4 — Conversational quality
-- **Streaming everything:** partial STT, token-streamed LLM → streaming TTS to slash
+- ✅ **Barge-in:** `BargeInController` + `StreamingSpeaker` cut off playback when the
+  user talks over the agent; driven by `run_conversation` (designer's #1 ask).
+  Tested in `tests/test_barge_in.py` (onset detection + end-to-end interrupt).
+- ⏭️ **Streaming everything:** partial STT, token-streamed LLM → streaming TTS to slash
   perceived latency (overlap stages).
-- **Barge-in:** VAD interrupts playback when the user starts talking (designer's #1 ask).
-- Endpointing tuning + configurable system prompt/persona.
+- ⏭️ Acoustic echo cancellation (so the mic ignores the agent's own audio without
+  headphones), endpointing tuning, configurable system prompt/persona.
 - **Owner:** Dev 1+Dev 2 · **Designer:** interaction spec · **QA:** barge-in latency test.
 
 ## v0.5 — Easy deployment (image pillar)

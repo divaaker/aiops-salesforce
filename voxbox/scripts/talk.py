@@ -23,14 +23,15 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from voxbox.pipeline import build_pipeline  # noqa: E402
-from voxbox.runtime import config_from_env, run_local  # noqa: E402
+from voxbox.runtime import config_from_env, run_conversation  # noqa: E402
 
 
 def main() -> None:
     cfg = config_from_env()
+    barge_in = os.environ.get("VOX_BARGE_IN", "1") != "0"
     try:
         orch = build_pipeline(cfg)
-        from voxbox.audio.live import MicSource, Speaker
+        from voxbox.audio.live import MicSource, StreamingSpeaker
     except RuntimeError as exc:
         print(f"❌ {exc}")
         sys.exit(1)
@@ -38,8 +39,8 @@ def main() -> None:
         print("❌ Live audio needs sounddevice. Install with: pip install 'voxbox[client]'")
         sys.exit(1)
 
-    print(f"🎙️  VoxBox live (stt={cfg.stt} llm={cfg.llm} tts={cfg.tts}). "
-          f"Speak, then pause. Ctrl-C to quit.\n")
+    print(f"🎙️  VoxBox live (stt={cfg.stt} llm={cfg.llm} tts={cfg.tts}, "
+          f"barge-in={'on' if barge_in else 'off'}). Speak, then pause. Ctrl-C to quit.\n")
 
     def on_turn(turn):
         m = turn.metrics
@@ -49,7 +50,11 @@ def main() -> None:
               f"total={m.total_ms:.0f}ms" + ("  ⚠ OVER BUDGET" if m.over_budget else "") + "\n")
 
     try:
-        run_local(orch, MicSource(), Speaker(), on_turn=on_turn)
+        run_conversation(
+            orch, MicSource(), StreamingSpeaker(),
+            barge_in=barge_in, on_turn=on_turn,
+            on_interrupt=lambda: print("  ✋ (interrupted — listening)\n"),
+        )
     except KeyboardInterrupt:
         print("\n👋 bye —", orch.metrics.summary())
 
